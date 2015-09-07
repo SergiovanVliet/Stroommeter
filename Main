@@ -23,11 +23,47 @@ float average;
 int i;
 int k;
 
+void TimerInit (void)
+{
+	TIM_TimeBaseInitTypeDef timerInitStructure; 
+	timerInitStructure.TIM_Prescaler = 36000;
+	timerInitStructure.TIM_CounterMode = TIM_CounterMode_Up;
+	timerInitStructure.TIM_Period = 1000;
+	timerInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+	timerInitStructure.TIM_RepetitionCounter = 0;
+	TIM_TimeBaseInit(TIM4, &timerInitStructure);
+	TIM_Cmd(TIM4, ENABLE);
+	
+	TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
+}
+
+void EnableTimerInterrupt()
+{
+    NVIC_InitTypeDef nvicStructure;
+    nvicStructure.NVIC_IRQChannel = TIM4_IRQn;
+    nvicStructure.NVIC_IRQChannelPreemptionPriority = 0;
+    nvicStructure.NVIC_IRQChannelSubPriority = 1;
+    nvicStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&nvicStructure);
+}
+
+void TIM4_IRQHandler()
+{
+    if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET)
+    {
+        TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
+        
+    }
+}
+
 
 int main(void)
 {
 	RCC_Configuration();
 	ADC_Config ();
+	
+	
+	
 
 	sum=0;
 	average=0;
