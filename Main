@@ -16,109 +16,6 @@
 
 #include "misc.h"
 
-void toggle_dot(void);
-
-void TIM2_IRQHandler(void){         			// Timer Interrupt handler for TIM2 will be called every 1ms
-  TIM_ClearITPendingBit(TIM2, TIM_IT_Update);   // Clear interrupt pending bit
-
-}
-
-void Timer_Init(void)
-{
-	TIM_TimeBaseInitTypeDef TIM_TimeBase_InitStructure;
-    NVIC_InitTypeDef NVIC_InitStructure;
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
-	TIM_TimeBase_InitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
-    TIM_TimeBase_InitStructure.TIM_Period           = 999;      // count up to 999 = 1000
-    TIM_TimeBase_InitStructure.TIM_Prescaler        = 71;       //72(MHz) -1 Divided by 72
-    TIM_TimeBase_InitStructure.TIM_CounterMode      = TIM_CounterMode_Up;
-	
-	TIM_TimeBaseInit(TIM2, &TIM_TimeBase_InitStructure);
-    TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
-    NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x0F;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0F;
-    NVIC_Init(&NVIC_InitStructure);
-    TIM_Cmd(TIM2, ENABLE);
-
-}
-
-void delay_us(uint32_t nus)
-{
-	uint32_t temp;
-	SysTick->LOAD   = nus * 11;
-	SysTick->VAL    = 0x00;
-	SysTick->CTRL   = 0x01 ;
-	do
-	{
-		temp=SysTick->CTRL;
-	}while(temp&0x01&&!(temp&(1<<16)));
-	SysTick->CTRL = 0x00;
-	SysTick->VAL = 0X00;
-}
-void delay_ms(uint32_t time_ms) //Delay in msec
-{
-  while (time_ms>0)
-  {
-    delay_us(1000);
-    time_ms--;
-  }
-}
-
-
-void delay(uint16_t ms)
-{
-	uint16_t start = TIM4->CNT;
-	do { } while ((TIM4->CNT - start) < ms);
-}
-
-/*
-static volatile uint16_t systick_delay_var = 0;
-
-void TimingDelay_Decrement(void)
-{
-	if(systick_delay_var != 0)
-	{
-		systick_delay_var--;
-	}
-}
-
-void SysTick_Handler(void)
-{
-	TimingDelay_Decrement();
-}
-
-static void delay_ms (int ms)
-{
-	systick_delay_var = ms;
-		while (systick_delay_var != 0);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-void SysTick_Configuration(void)
-{
-        SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK);
-        SysTick_SetReload(36000);
-        SysTick_ITConfig(ENABLE);
-}
-/******************************************************************************
- * Function Name  : SysTick_Start
- * Description    : None
- * Input          : None
- * Output         : None
- * Return         : None
- ******************************************************************************/
-/*
-void SysTick_Start(void)
-{
-        SysTick_CounterCmd(SysTick_Counter_Clear);
-        SysTick_CounterCmd(SysTick_Counter_Enable);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-*/
 uint16_t a;
 uint16_t buffer[10];
 uint16_t sum;
@@ -131,10 +28,7 @@ int main(void)
 {
 	RCC_Configuration();
 	ADC_Config ();
-	Timer_Init();
 
-	//SysTick_Configuration();
-	//SysTick_Start();
 	sum=0;
 	average=0;
 
@@ -146,10 +40,10 @@ int main(void)
 			//a = ADC_GetConversionValue(ADC1);
 			buffer[i] = a;
 			a=a+10;
-//			delay_ms(500);
+
 		}
 
-//		delay_ms(500);
+
 
 		for(k=0; k<10; k++)
 		{
@@ -157,7 +51,7 @@ int main(void)
 		}
 
 		average = sum/10;
-//		delay_ms(1000);
+
 
 
 	}
