@@ -51,7 +51,7 @@ void TIM4_IRQHandler()
 {
     if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET)
     {
-        TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
+        TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
         
     }
 }
