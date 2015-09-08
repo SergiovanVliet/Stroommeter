@@ -15,6 +15,8 @@
 #include "PinDef.h"
 
 #include "misc.h"
+#include "Timer.h"
+
 
 uint16_t a;
 uint16_t buffer[10];
@@ -23,59 +25,57 @@ float average;
 int i;
 int k;
 
-void TimerInit (void)
+
+
+static volatile uint16_t systick_delay_var=0;
+
+void TimingDelay_Decrement(void)
 {
-	TIM_TimeBaseInitTypeDef timerInitStructure; 
-	timerInitStructure.TIM_Prescaler = 36000;
-	timerInitStructure.TIM_CounterMode = TIM_CounterMode_Up;
-	timerInitStructure.TIM_Period = 1000;
-	timerInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
-	timerInitStructure.TIM_RepetitionCounter = 0;
-	TIM_TimeBaseInit(TIM4, &timerInitStructure);
-	TIM_Cmd(TIM4, ENABLE);
-	
-	TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
+	if(systick_delay_var != 0)
+	{
+		systick_delay_var--;
+	}
 }
 
-void EnableTimerInterrupt()
+
+void SysTick_Handler(void)
 {
-    NVIC_InitTypeDef nvicStructure;
-    nvicStructure.NVIC_IRQChannel = TIM4_IRQn;
-    nvicStructure.NVIC_IRQChannelPreemptionPriority = 0;
-    nvicStructure.NVIC_IRQChannelSubPriority = 1;
-    nvicStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&nvicStructure);
+	TimingDelay_Decrement();
 }
 
-void TIM4_IRQHandler()
+
+static void delay_ms (int ms)
 {
-    if (TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET)
-    {
-        TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
-        
-    }
+	systick_delay_var = ms;
+		while (systick_delay_var != 0);
 }
+
 
 
 int main(void)
 {
 	RCC_Configuration();
 	ADC_Config ();
-	
-	
-	
+	SysTick_Configuration();
+	SysTick_Start();
+
+
+
 
 	sum=0;
 	average=0;
 
+
 	while(1)
 	{
 		a=0;
+		average=0;
+		sum=0;
 		for (i=0; i<10; i++)
 		{
-			//a = ADC_GetConversionValue(ADC1);
+			a = ADC_GetConversionValue(ADC1);
 			buffer[i] = a;
-			a=a+10;
+			delay_ms(500);
 
 		}
 
@@ -88,6 +88,7 @@ int main(void)
 
 		average = sum/10;
 
+		delay_ms(2000);
 
 
 	}
